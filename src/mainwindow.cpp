@@ -78,26 +78,6 @@ void MainWindow::on_valScaling3_doubleSpinBox_valueChanged(double arg1)
     realtime->settingsChanged();
 }
 
-
-void MainWindow::on_noiseScaling_horizontalSlider_sliderMoved(int position)
-{
-    ui->noiseScaling_horizontalSlider->setValue(position);
-    ui->noiseScaling_doubleSpinBox->setValue(position);
-    settings.hiResNoise.scaling = ui->noiseScaling_horizontalSlider->value();
-    realtime->settingsChanged();
-
-}
-
-
-void MainWindow::on_noiseScaling_doubleSpinBox_valueChanged(double arg1)
-{
-    ui->noiseScaling_doubleSpinBox->setValue(arg1);
-    ui->noiseScaling_horizontalSlider->setValue(arg1);
-    settings.hiResNoise.scaling = ui->noiseScaling_doubleSpinBox->value();
-    realtime->settingsChanged();
-}
-
-
 void MainWindow::on_invert_checkBox_stateChanged(int arg1)
 {
     settings.invertDensity = !settings.invertDensity;
@@ -547,6 +527,78 @@ void MainWindow::on_lightColor_B_doubleSpinBox_valueChanged(double arg1)
 {
     ui->lightColor_R_doubleSpinBox->setValue(arg1);
     settings.lightData.color[2] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_shapeTexture_density_offset_valueChanged(double arg1)
+{
+    ui->shapeTexture_density_offset->setValue(arg1);
+    settings.hiResNoise.densityOffset = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_hi_1_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_hi_1_doubleSpinBox->setValue(arg1);
+    settings.hiResNoise.scaling[0] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_hi_2_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_hi_2_doubleSpinBox->setValue(arg1);
+    settings.hiResNoise.scaling[1] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_hi_3_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_hi_3_doubleSpinBox->setValue(arg1);
+    settings.hiResNoise.scaling[2] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_hi_4_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_hi_4_doubleSpinBox->setValue(arg1);
+    settings.hiResNoise.scaling[3] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_low_1_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_lo_1_doubleSpinBox->setValue(arg1);
+    settings.loResNoise.scaling[0] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_lo_2_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_lo_2_doubleSpinBox->setValue(arg1);
+    settings.loResNoise.scaling[1] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_lo_3_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_lo_3_doubleSpinBox->setValue(arg1);
+    settings.loResNoise.scaling[2] = arg1;
+    realtime->settingsChanged();
+}
+
+
+void MainWindow::on_noiseScaling_lo_4_doubleSpinBox_valueChanged(double arg1)
+{
+    ui->noiseScaling_lo_4_doubleSpinBox->setValue(arg1);
+    settings.loResNoise.scaling[3] = arg1;
     realtime->settingsChanged();
 }
 

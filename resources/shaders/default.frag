@@ -38,13 +38,13 @@ uniform float cloudLightAbsorptionMult;
 uniform float minLightTransmittance = 0.2f;
 
 // Params for high resolution noise
-uniform float hiResNoiseScaling;
+uniform vec4 hiResNoiseScaling;
 uniform vec3 hiResNoiseTranslate;  // noise transforms
 uniform vec4 hiResChannelWeights;  // how to aggregate RGBA channels
 uniform float hiResDensityOffset;  // controls overall cloud coverage
 
 // Params for low resolution noise
-uniform float loResNoiseScaling;
+uniform vec4 loResNoiseScaling;
 uniform vec3 loResNoiseTranslate;  // noise transforms
 uniform vec4 loResChannelWeights;  // how to aggregate RGBA channels
 uniform float loResDensityWeight;  // relative weight of lo-res noise about hi-res
@@ -172,7 +172,7 @@ float xzFalloff(vec3 position) {
 
 float sampleDensity(vec3 position) {
     // Sample high-res shape textures
-    const vec3 hiResPosition = position * hiResNoiseScaling * .1f + hiResNoiseTranslate;
+    const vec3 hiResPosition = position * hiResNoiseScaling[0] * hiResNoiseScaling[1] * hiResNoiseScaling[2] * hiResNoiseScaling[3] * .1f + hiResNoiseTranslate;
     const vec4 hiResNoise = texture(volumeHighRes, hiResPosition);
     float hiResDensity = dot( hiResNoise, normalizeL1(hiResChannelWeights) );
     if (invertDensity)
@@ -190,7 +190,7 @@ float sampleDensity(vec3 position) {
         return 0.f;
 
     // Sample low-res detail textures
-    const vec3 loResPosition = position * loResNoiseScaling * .1f + loResNoiseTranslate;
+    const vec3 loResPosition = position * loResNoiseScaling[0] * loResNoiseScaling[1] * loResNoiseScaling[2] * loResNoiseScaling[3] * .1f + loResNoiseTranslate;
     const vec4 loResNoise = texture(volumeLowRes, loResPosition);
     float loResDensity = dot( loResNoise, normalizeL1(loResChannelWeights) );
     loResDensity = 1.f - loResDensity;  // invert the low-res density by default
