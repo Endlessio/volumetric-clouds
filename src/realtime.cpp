@@ -141,14 +141,19 @@ void Realtime::drawVolume() {
 void Realtime::drawTerrain() {
     glUseProgram(m_terrainShader);
 
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_1D, sunTexture);
 
     glBindVertexArray(m_terrain_vao);
-    int res = m_terrain.getResolution();
-    glDrawArrays(GL_TRIANGLES, 0, res*res*6 * m_terrain.getScaleX() * m_terrain.getScaleY());
+    const int numSquaresPerSide = m_terrain.terrainExtent * m_terrain.terrainTesselation;
+    glDrawArrays(GL_TRIANGLES, 0, numSquaresPerSide * numSquaresPerSide * 6);
     glBindVertexArray(0);
     glUseProgram(0);
+
+    glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
 
@@ -202,7 +207,6 @@ void Realtime::initializeGL() {
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
-//    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     /* Create shader */
     m_volumeShader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
@@ -212,7 +216,7 @@ void Realtime::initializeGL() {
 
     /* Set up VBO, VAO, and SSBO */
     setUpScreenQuad();
-    setUpVolume();
+//    setUpVolume();
 
     /* Read and set up textures */
     setUpTextures();
@@ -221,7 +225,12 @@ void Realtime::initializeGL() {
     m_camera = Camera(SceneCameraData(), size().width(), size().height(), settings.nearPlane, settings.farPlane);
 
 
-    /* Set up terrain shader and terrain data */
+    m_terrain = TerrainGenerator(2048, 16, 5,
+                                 glm::vec3(0.f),  // translation
+                                 1.f,  // extent
+                                 64,   // tesselation
+                                 0.1);  // max height
+    m_terrain.generateTerrain();
     glUseProgram(m_terrainShader);
     {
         // VAO, VBO
@@ -255,7 +264,7 @@ void Realtime::initializeGL() {
         glGenTextures(1, &m_terrain_height_texture);
         glActiveTexture(GL_TEXTURE6);
         glBindTexture(GL_TEXTURE_2D, m_terrain_height_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_terrain.getResolution(), m_terrain.getResolution(), 0, GL_RED, GL_FLOAT, m_terrain.getHeightMap().data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_terrain.noiseMapResolution, m_terrain.noiseMapResolution, 0, GL_RED, GL_FLOAT, m_terrain.heightMap.data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -263,18 +272,18 @@ void Realtime::initializeGL() {
         // start normal map modification
         glActiveTexture(GL_TEXTURE7);
         glBindTexture(GL_TEXTURE_2D, m_terrain_normal_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, m_terrain.getResolution(), m_terrain.getResolution(), 0, GL_RGB, GL_FLOAT, m_terrain.getNormalMap().data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, m_terrain.noiseMapResolution, m_terrain.noiseMapResolution, 0, GL_RGB, GL_FLOAT, m_terrain.normalMap.data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        // start color map modification
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, m_terrain_color_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_terrain.getResolution(), m_terrain.getResolution(), 0, GL_RGB, GL_FLOAT, m_terrain.getColorMap().data());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, 0);
+//        // start color map modification
+//        glActiveTexture(GL_TEXTURE3);
+//        glBindTexture(GL_TEXTURE_2D, m_terrain_color_texture);
+//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_terrain.noiseMapResolution, m_terrain.noiseMapResolution, 0, GL_RGB, GL_FLOAT, m_terrain.getColorMap().data());
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//        glBindTexture(GL_TEXTURE_2D, 0);
         // end height map modification
     }
 
@@ -383,9 +392,13 @@ void Realtime::setUpTerrain() {
     // Put data into the VBO
     m_terrain.generateTerrain();
     glBufferData(GL_ARRAY_BUFFER,
-                 m_terrain.getCoordMap().size() * sizeof(GLfloat),
-                 m_terrain.getCoordMap().data(),
+                 m_terrain.plane.size() * 2*sizeof(GLfloat),
+                 m_terrain.plane.data(),
                  GL_STATIC_DRAW);
+
+    for (auto &v : m_terrain.plane) {
+        std::cout << glm::to_string(v);
+    }
 
     // Generate and bind the VAO, with our VBO currently bound
     glGenVertexArrays(1, &m_terrain_vao);
@@ -393,8 +406,7 @@ void Realtime::setUpTerrain() {
 
     // Define VAO attributes
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat),
-                             nullptr);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), nullptr);
 
     // Unbind
     glBindVertexArray(0);

@@ -4,31 +4,41 @@
 #include "glm/glm.hpp"
 #include "noise/perlin.h"
 
+
 class TerrainGenerator
 {
 public:
+
 // constructor and deconstructor
-    TerrainGenerator();
+    TerrainGenerator() = default;
+    TerrainGenerator(int noiseMapResolution, int noiseMapNumGrids, int noiseMapNumOctaves,
+                     glm::vec3 terrainTranslation, float terrainExtent, int terrainTesselation, float maxHeight);
     ~TerrainGenerator();
-
-// get functions
-    int getResolution() { return m_resolution; };
-    float getScaleX() { return m_xScale; };
-    float getScaleY() { return m_yScale; };
-    std::vector<float> getHeightMap() { return height_data; };
-    std::vector<float> getNormalMap() { return normal_data; };
-    std::vector<float> getColorMap() { return color_data; };
-    std::vector<float> getCoordMap() { return xz_data; };
-
-// update functions
-    void setResolution(int res) {  m_resolution = res; };
-    void setMxMy(float x, float y);
-    void setTranslation(glm::vec3 trans);
 
 // generator functions
     void generateTerrain();
+    std::vector<glm::vec2> generatePlane();  // xz coords of the bottom plane
 
-private:
+    // perlin noise related
+    Perlin perlinNoiseGen;
+    int noiseMapResolution;  // in px
+    int noiseMapNumGrids;
+    int noiseMapNumOctaves;
+
+    // only dictates the plane
+    glm::vec3 terrainTranslation;
+    float terrainExtent;     // how big the plane is in world space unit
+    int terrainTesselation;  // number of subdivided rectangle per unit length in world space
+    float maxHeight;  // max height of the terrain in world space
+
+    std::vector<glm::vec2> plane;
+
+    // textures
+    std::vector<float> heightMap;
+    std::vector<glm::vec3> normalMap;
+
+
+
 
     int m_resolution, m_gridRes, m_numOctaves; // perlin noise related
     float m_xScale;
@@ -38,10 +48,4 @@ private:
     std::vector<float> normal_data;
     std::vector<float> color_data;
     std::vector<float> xz_data;
-
-    glm::vec3 getPosition(int row, int col);
-    float getHeight(int row, int col);
-    glm::vec3 getNormal(int row, int col);
-    glm::vec3 getColor(glm::vec3 normal, glm::vec3 position);
-
 };

@@ -56,7 +56,7 @@ void main(void)
     vec3 lightColor = getSunColor(sunLongitudeRadians);
 
 //    vec3 ambient = ambientColor * color * ka;
-    vec3 ambient = lightColor * color * ka;
+    vec3 ambient = lightColor * sampleColor * ka;
 
     float diffuseStrength = clamp(dot(normal, lightDir), 0, 1);
     vec3 diffuse = sampleColor * lightColor * diffuseStrength * kd;
@@ -73,5 +73,5 @@ void main(void)
 //    fragColor = vec4(lightDir, 1.f);
 //    fragColor = vec4(vec3(clamp(dot(normal, lightDir), 0, 1)), 1.f);
 //    fragColor = vec4(normal, 1.f);
-//    fragColor = vec4(1,0,0,1);
+    fragColor = vec4(1,0,0,1);
 }

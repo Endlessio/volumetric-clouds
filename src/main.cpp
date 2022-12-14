@@ -44,6 +44,28 @@
 
 int main(int argc, char *argv[])
 {
+//    int noiseRes = 1024;
+//    int gridRes = 16;
+//    int numOctaves = 4;
+//    auto perlinGen = Perlin(noiseRes, gridRes, numOctaves);
+//    auto noiseMap = perlinGen.generatePerlinNoise2D();
+//    std::vector<uchar> noiseMapU8(noiseRes*noiseRes);
+//    for (int i = 0; i < noiseMapU8.size(); i++)
+//        noiseMapU8[i] = noiseMap[i] * 255.f;
+//    QImage img(noiseMapU8.data(), noiseRes, noiseRes, QImage::Format_Grayscale8);
+//    img.save("height.png");
+
+//    auto normalMap = perlinGen.computePerlinNormal2D(noiseMap, 0.1);
+//    std::vector<uchar> normalMapU8;
+//    normalMapU8.reserve(noiseRes*noiseRes*3);
+//    for (auto &v: normalMap) {
+////        std::cout << glm::to_string(v) << "\n";
+//        normalMapU8.push_back((v.x + 1.f) / 2.f * 255.f);
+//        normalMapU8.push_back((v.y + 1.f) / 2.f * 255.f);
+//        normalMapU8.push_back((v.z + 1.f) / 2.f * 255.f);
+//    }
+//    QImage normalImg(normalMapU8.data(), noiseRes, noiseRes, QImage::Format_RGB888);
+//    normalImg.save("normal.png");
 
     QApplication a(argc, argv);
     MainWindow w;

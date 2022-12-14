@@ -27,9 +27,10 @@
 class Perlin {
 
 private:
-    size_t noiseResolution, gridResolution, numOctaves;
+    size_t noiseResolution = 0, gridResolution = 0, numOctaves = 0;
 
 public:
+    Perlin() = default;
     Perlin(size_t noiseResolution, size_t gridResolution, size_t numFrequencies = 1);
     static std::vector<glm::vec2> createRandomVectors2D(size_t sideLength);
     static float getPerlinNoiseValue(float u, float v,
@@ -40,4 +41,5 @@ public:
     float getPerlinNoiseValue_f(float x_g, float y_g, int frequency,
                                 const std::vector<glm::vec2> &randomVectors);
     std::vector<float> generatePerlinNoise2D();
+    std::vector<glm::vec3> computePerlinNormal2D(const std::vector<float> &perlinHeight, float heightMultiplier);
 };

@@ -84,6 +84,8 @@ std::vector<float> Perlin::generatePerlinNoise2D() {
     const std::vector<glm::vec2> randomVectors = createRandomVectors2D(gridResolution);
     const float scalePixelToGrid = static_cast<float>(gridResolution) / static_cast<float>(noiseResolution);
 
+    float noiseMin = INFINITY;
+    float noiseMax = -INFINITY;
     std::vector<float> noiseMap(noiseResolution * noiseResolution);
     for (int row_p = 0; row_p < noiseResolution; row_p++) {
         float y_g = scalePixelToGrid * row_p;
@@ -98,8 +100,51 @@ std::vector<float> Perlin::generatePerlinNoise2D() {
             }
             int index_p = pos2DToIndex(col_p, row_p, noiseResolution);
             noiseMap[index_p] = noiseVal;
+
+            noiseMin = std::min(noiseVal, noiseMin);
+            noiseMax = std::max(noiseVal, noiseMax);
         }
     }
 
+    for (auto &v : noiseMap)
+        v = (v - noiseMin) / (noiseMax - noiseMin);
+
     return noiseMap;
+}
+
+glm::vec3 getPosition(const std::vector<float> &perlinHeight, int row, int col, int noiseResolution, float maxHeight) {
+    float x, y, z;
+    x = static_cast<float>(row) / noiseResolution;
+    z = 1.f - static_cast<float>(col) / noiseResolution;  // flip z to match uv coords order
+
+    col = (col + noiseResolution) % noiseResolution;
+    row = (row + noiseResolution) % noiseResolution;
+    y = perlinHeight[ pos2DToIndex(col, row, noiseResolution) ];  // zero to one
+    y = y * maxHeight;  // zero to maxHeight
+    return glm::vec3(x, y, z);
+}
+
+std::vector<glm::vec3> Perlin::computePerlinNormal2D(const std::vector<float> &perlinHeight, float maxHeight = 1.f) {
+
+    std::vector<glm::vec3> normals;
+    normals.reserve(noiseResolution * noiseResolution);
+    for (int row = 0; row < noiseResolution; row++) {
+        for (int col = 0; col < noiseResolution; col++) {
+
+            // flip column number
+            glm::vec3 v = getPosition(perlinHeight, row, col, noiseResolution, maxHeight);
+            glm::vec3 p[8] = {getPosition(perlinHeight, row-1, col-1, noiseResolution, maxHeight) - v, getPosition(perlinHeight, row  , col-1, noiseResolution, maxHeight) - v,
+                              getPosition(perlinHeight, row+1, col-1, noiseResolution, maxHeight) - v, getPosition(perlinHeight, row+1, col  , noiseResolution, maxHeight) - v,
+                              getPosition(perlinHeight, row+1, col+1, noiseResolution, maxHeight) - v, getPosition(perlinHeight, row  , col+1, noiseResolution, maxHeight) - v,
+                              getPosition(perlinHeight, row-1, col+1, noiseResolution, maxHeight) - v, getPosition(perlinHeight, row-1, col  , noiseResolution, maxHeight) - v};
+            glm::vec3 normal(0.f);
+            for (int i = 0; i < 8; i++)
+                normal += glm::normalize( glm::cross(p[i], p[(i+1)%8]) );
+
+            normal = glm::normalize(normal);
+            normals.push_back(normal);
+        }
+    }
+
+    return normals;
 }

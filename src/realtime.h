@@ -108,7 +108,7 @@ private:
 
     Camera m_camera;
     bool glInitialized = false;
-        GLuint vboVolume, vaoVolume;
+    GLuint vboVolume, vaoVolume;
 
     // Tick Related Variables
     int m_timer;                                 // Stores timer which attempts to run ~60 times per second
